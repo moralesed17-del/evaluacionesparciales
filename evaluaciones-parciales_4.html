@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma para Evaluaciones Parciales — Universidad Regional</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0A0F1A; --panel:#0F1626; --panel2:#131C30; --line:#22304A; --lineSoft:#1A2338;
+  --cyan:#5EEAD4; --cyanDim:#2C7A6E; --amber:#F4B942; --red:#F0554A;
+  --text:#E7ECF5; --muted:#8393B0; --mutedDim:#5A6785;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+#app{min-height:100vh;}
+.mono{font-family:'JetBrains Mono',monospace;}
+.disp{font-family:'Space Grotesk',sans-serif;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+.pill{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;letter-spacing:.3px;display:inline-block;}
+.pill-cyan{color:var(--cyan);border:1px solid #5EEAD455;background:#5EEAD414;}
+.pill-amber{color:var(--amber);border:1px solid #F4B94255;background:#F4B94214;}
+.pill-red{color:var(--red);border:1px solid #F0554A55;background:#F0554A14;}
+.btn{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;border-radius:8px;padding:10px 18px;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;transition:transform .05s ease;}
+.btn:active{transform:scale(.97);}
+.btn[disabled]{opacity:.45;cursor:not-allowed;}
+.btn-primary{background:var(--cyan);color:#04201C;}
+.btn-outline{background:transparent;color:var(--text);border-color:var(--line);}
+.btn-danger{background:transparent;color:var(--red);border-color:#F0554A66;}
+.btn-ghost{background:transparent;color:var(--muted);}
+.btn-sm{padding:6px 12px;font-size:12.5px;}
+.input,select.input,textarea.input{
+  font-family:'Inter',sans-serif;background:var(--panel2);border:1px solid var(--line);color:var(--text);
+  border-radius:7px;padding:9px 12px;font-size:14px;outline:none;width:100%;
+}
+.pwrow{display:flex;gap:6px;align-items:center;}
+.pwrow .input{flex:1;}
+.label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mutedDim);letter-spacing:.6px;margin-bottom:5px;text-transform:uppercase;}
+.row{display:flex;gap:8px;}
+.wrap{flex-wrap:wrap;}
+.between{justify-content:space-between;}
+.center{align-items:center;}
+a{color:inherit;}
+.optbtn{font-family:'Inter',sans-serif;text-align:left;font-size:14px;padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;width:100%;display:flex;align-items:center;gap:10px;}
+.optbtn.active{border-color:var(--cyanDim);background:#5EEAD414;}
+.chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.chk.on{background:var(--cyan);border-color:var(--cyan);}
+.typebtn{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;}
+.typebtn.active{border-color:var(--cyanDim);background:#5EEAD414;color:var(--cyan);}
+.tabbtn{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;}
+.tabbtn.active{border-color:var(--cyanDim);background:#5EEAD414;color:var(--cyan);}
+.qgrid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:6px;align-items:center;}
+.tblrow{display:grid;padding:12px 14px;border-bottom:1px solid var(--lineSoft);align-items:center;}
+.tblhead{display:grid;padding:10px 14px;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mutedDim);letter-spacing:.5px;}
+.iconbtn{background:none;border:none;color:var(--red);cursor:pointer;padding:6px;}
+.center-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.grid-bar{height:5px;background:var(--lineSoft);border-radius:3px;overflow:hidden;}
+.grid-bar > div{height:100%;transition:width 1s linear;}
+.qcard{padding:20px;margin-bottom:16px;background-image:linear-gradient(var(--lineSoft) 1px, transparent 1px), linear-gradient(90deg, var(--lineSoft) 1px, transparent 1px);background-size:22px 22px;background-color:var(--panel);}
+.banner-red{font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px;background:#F0554A18;border:1px solid #F0554A55;color:var(--red);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px;}
+.examcard{padding:18px;cursor:pointer;transition:border-color .15s ease;}
+.examcard:hover{border-color:var(--cyanDim);}
+::selection{background:#5EEAD455;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   PLATAFORMA PARA EVALUACIONES PARCIALES — Universidad Regional
+   Versión 100% en el navegador (sin servidor ni base de datos externa).
+   Se publica como un solo archivo HTML en cualquier hosting y ya queda
+   "en línea": cualquier estudiante con el enlace puede presentar el examen
+   desde su propio dispositivo.
+
+   Como no hay base de datos compartida, cada resultado se guarda en el
+   navegador del estudiante y además se descarga automáticamente un archivo
+   .json al terminar. El docente reúne esos archivos (o le pide a cada
+   estudiante que se lo envíe) y los importa en "Reporte de resultados" para
+   consolidarlos y exportarlos a Excel. Al importar, los carnés duplicados
+   para la misma evaluación se descartan automáticamente.
+========================================================================= */
+
+const DEFAULT_JORNADAS = ["Matutina","Vespertina","Nocturna","Sabatina"];
+const TYPE_LABEL = {
+  numeric:"Respuesta numérica",
+  boolean:"Verdadero / Falso",
+  multiple:"Opción múltiple (una respuesta)",
+  checklist:"Checklist (varias respuestas)",
+  short:"Respuesta concreta"
+};
+
+/* ---------- storage (localStorage del navegador) ---------- */
+function loadConfig(){
+  try{ const c = JSON.parse(localStorage.getItem('bp_config_v3')); if(c) return c; }catch{}
+  const def = { institutionName:"Universidad Regional", password:"docente2026" };
+  localStorage.setItem('bp_config_v3', JSON.stringify(def));
+  return def;
+}
+function saveConfig(c){ localStorage.setItem('bp_config_v3', JSON.stringify(c)); }
+function loadExams(){ try{ return JSON.parse(localStorage.getItem('bp_exams_v2')) || []; }catch{ return []; } }
+function saveExams(e){ localStorage.setItem('bp_exams_v2', JSON.stringify(e)); }
+function loadResults(){ try{ return JSON.parse(localStorage.getItem('bp_results_v3')) || []; }catch{ return []; } }
+function saveResults(r){ localStorage.setItem('bp_results_v3', JSON.stringify(r)); }
+
+/* ---------- helpers ---------- */
+function genId(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
+function fmtTime(sec){ sec = Math.max(0,sec); const m = Math.floor(sec/60), s = sec%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function normText(s){ return (s||'').toString().trim().toLowerCase(); }
+function sameSet(a,b){ if(a.length!==b.length) return false; const sa=[...a].sort(), sb=[...b].sort(); return sa.every((v,i)=>v===sb[i]); }
+function slug(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+
+function randomizeVariables(vars){
+  const scope = {}, display = {};
+  (vars||[]).forEach(v=>{
+    const dec = Number.isFinite(v.decimals) ? v.decimals : 0;
+    const raw = Math.random()*(v.max-v.min)+v.min;
+    const val = parseFloat(raw.toFixed(dec));
+    scope[v.name] = val;
+    display[v.name] = dec>0 ? val.toFixed(dec) : String(val);
+  });
+  return { scope, display };
+}
+function fillTemplate(tpl, display){
+  return (tpl||'').replace(/\{(\w+)\}/g, (m,name)=> display[name]!==undefined ? display[name] : m);
+}
+function computeAnswer(formula, scope){
+  try{
+    const keys = Object.keys(scope);
+    const vals = keys.map(k=>scope[k]);
+    const expr = (formula||'').replace(/\^/g,'**');
+    const fn = new Function(...keys, `"use strict"; return (${expr});`);
+    const val = fn(...vals);
+    return (typeof val === 'number' && isFinite(val)) ? val : NaN;
+  }catch{ return NaN; }
+}
+function isNumericCorrect(userVal, correctVal, tolerancePct){
+  if(!Number.isFinite(userVal) || !Number.isFinite(correctVal)) return false;
+  const tol = Number.isFinite(tolerancePct) ? tolerancePct : 1;
+  const allowed = Math.max(Math.abs(correctVal)*(tol/100), 1e-9);
+  return Math.abs(userVal-correctVal) <= allowed;
+}
+function instantiateQuestion(q){
+  const base = { qid:q.id, title:q.title, type:q.type, timeLimit:q.timeLimit||90 };
+  if(q.type==='numeric'){
+    const { scope, display } = randomizeVariables(q.variables);
+    return { ...base, text:fillTemplate(q.statement, display), unit:q.unit, tolerance:q.tolerance, correct:computeAnswer(q.formula, scope) };
+  }
+  if(q.type==='boolean') return { ...base, text:q.statement, correctBool:!!q.correctBool };
+  if(q.type==='multiple') return { ...base, text:q.statement, options:shuffle(q.options), correctOptionId:q.correctOptionId };
+  if(q.type==='checklist') return { ...base, text:q.statement, options:shuffle(q.options), correctOptionIds:q.correctOptionIds||[] };
+  return { ...base, text:q.statement, acceptedAnswers:q.acceptedAnswers||[] };
+}
+function evaluateAnswer(q, userAnswer){
+  if(userAnswer===null || userAnswer===undefined || userAnswer==='') return false;
+  if(q.type==='numeric') return isNumericCorrect(parseFloat(userAnswer), q.correct, q.tolerance);
+  if(q.type==='boolean') return userAnswer===q.correctBool;
+  if(q.type==='multiple') return userAnswer===q.correctOptionId;
+  if(q.type==='checklist') return Array.isArray(userAnswer) && userAnswer.length>0 && sameSet(userAnswer, q.correctOptionIds);
+  if(q.type==='short') return q.acceptedAnswers.some(a=>normText(a)===normText(userAnswer));
+  return false;
+}
+
+/* ---------- global state ---------- */
+let S = {
+  screen: 'landing',
+  authed: false,
+  authError: '',
+  config: loadConfig(),
+  exams: loadExams(),
+  results: loadResults(),
+  currentExamId: null,
+  instructorTab: 'bank',
+  jornadaFilter: 'Todas',
+  showQForm: false,
+  qFormType: 'numeric',
+  formVars: [ { id:genId(), name:'', min:1, max:10, decimals:0 } ],
+  formOptions: [ { id:genId(), text:'' }, { id:genId(), text:'' } ],
+  formCorrectOptionId: null,
+  formCorrectOptionIds: [],
+  formCorrectBool: true,
+  formError: '',
+  qPreview: null,
+  showNewExam: false,
+  pwError: '', pwSuccess: '',
+  regError: '',
+  editingQuestionId: null,
+  showSettings: false,
+};
+
+let examSession = null;
+let timerInterval = null;
+let tabListenersAttached = false;
+
+const app = document.getElementById('app');
+function render(){ app.innerHTML = views[S.screen](); }
+function currentExam(){ return S.exams.find(e=>e.id===S.currentExamId) || null; }
+function persistExams(){ saveExams(S.exams); }
+
+/* =========================================================================
+   ICONS
+========================================================================= */
+const ic = {
+  radio:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>`,
+  lock:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  shield:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>`,
+  trash:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>`,
+  ban:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg>`,
+  check:`<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>`,
+  x:`<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
+  checksm:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#04201C" stroke-width="3"><path d="m20 6-11 11-5-5"/></svg>`,
+  eye:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  eyeoff:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.6 19.6 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a19.6 19.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>`,
+};
+function icon(name){
+  if(name==='settings') return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
+  if(name==='cap') return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 10-10-5L2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>`;
+  if(name==='back') return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5m0 0 7 7m-7-7 7-7"/></svg>`;
+  if(name==='plus') return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`;
+  if(name==='chev') return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>`;
+  if(name==='book') return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+  return '';
+}
+function pwToggleBtn(inputId){
+  return `<button type="button" class="btn btn-outline btn-sm" style="padding:9px 10px;" onclick="togglePw('${inputId}', this)">${ic.eye}</button>`;
+}
+function togglePw(id, btn){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const show = el.type === 'password';
+  el.type = show ? 'text' : 'password';
+  btn.innerHTML = show ? ic.eyeoff : ic.eye;
+}
+
+/* =========================================================================
+   VIEWS
+========================================================================= */
+const views = {};
+
+views.landing = () => `
+  <div class="center-screen" style="flex-direction:column;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <div style="display:flex;justify-content:center;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:10px;background:#5EEAD418;border:1px solid var(--cyanDim);display:flex;align-items:center;justify-content:center;color:var(--cyan);">${ic.radio}</div>
+      </div>
+      <h1 class="disp" style="font-size:28px;font-weight:700;margin:0;letter-spacing:-.5px;max-width:480px;">Plataforma para evaluaciones parciales</h1>
+      <p class="mono" style="color:var(--mutedDim);font-size:12px;margin-top:8px;letter-spacing:.5px;">${escapeHtml((S.config.institutionName||'UNIVERSIDAD REGIONAL').toUpperCase())}</p>
+    </div>
+    <div class="row wrap" style="justify-content:center;max-width:640px;">
+      <div class="panel examcard" style="width:280px;" onclick="goInstructor()">
+        <div style="color:var(--cyan);">${icon('settings')}</div>
+        <div class="disp" style="font-size:17px;font-weight:600;margin-top:14px;">Panel del docente</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;">Crea evaluaciones por tema o clase, administra sus bancos de preguntas y revisa resultados. Protegido con contraseña.</div>
+      </div>
+      <div class="panel examcard" style="width:280px;" onclick="goStudentSelectExam()">
+        <div style="color:var(--amber);">${icon('cap')}</div>
+        <div class="disp" style="font-size:17px;font-weight:600;margin-top:14px;">Presentar examen</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.5;">Elige la evaluación de tu clase, regístrate con tu nombre, carné y jornada, y responde con tiempo controlado.</div>
+      </div>
+    </div>
+  </div>
+`;
+
+views['instructor-auth'] = () => `
+  <div class="center-screen">
+    <div class="panel" style="padding:26px;width:340px;">
+      <button class="btn btn-ghost" style="padding:6px 0;margin-bottom:14px;" onclick="goLanding()">${icon('back')} Volver</button>
+      <div style="color:var(--cyan);">${ic.lock}</div>
+      <div class="disp" style="font-weight:700;font-size:18px;margin-top:10px;margin-bottom:4px;">Acceso del docente</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Se solicita cada vez que entras al panel.</div>
+      <div class="label">Contraseña</div>
+      <div class="pwrow" style="margin-bottom:10px;">
+        <input id="pwInput" type="password" class="input" placeholder="••••••••" onkeydown="if(event.key==='Enter'){tryAuth();}">
+        ${pwToggleBtn('pwInput')}
+      </div>
+      ${S.authError ? `<div style="color:var(--red);font-size:12.5px;margin-bottom:10px;">${escapeHtml(S.authError)}</div>` : ''}
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="tryAuth()">Entrar</button>
+      <div class="mono" style="font-size:11px;color:var(--mutedDim);margin-top:14px;line-height:1.6;">
+        Contraseña de fábrica: <b>docente2026</b> (cámbiala en Ajustes una vez dentro).
+      </div>
+    </div>
+  </div>
+`;
+
+views.instructor = () => `
+  <div style="min-height:100vh;padding:20px 18px 60px;">
+    <div style="max-width:860px;margin:0 auto;">
+      <button class="btn btn-ghost" style="padding:6px 0;margin-bottom:16px;" onclick="goLanding()">${icon('back')} Volver</button>
+      <div class="row between center wrap" style="margin-bottom:8px;gap:10px;">
+        <div class="row center" style="gap:10px;">
+          <span style="color:var(--cyan);">${icon('settings')}</span>
+          <h1 class="disp" style="font-size:22px;margin:0;font-weight:700;">Panel del docente</h1>
+        </div>
+        <div class="row" style="gap:8px;">
+          <button class="btn btn-outline btn-sm" onclick="goAllResults()">Reporte general</button>
+          <button class="btn btn-outline btn-sm" onclick="toggleSettings()">Ajustes</button>
+        </div>
+      </div>
+
+      ${S.showSettings ? settingsPanelHtml() : ''}
+
+      <div class="row between center" style="margin:20px 0 14px;">
+        <div class="disp" style="font-weight:600;font-size:15px;">Evaluaciones</div>
+        <button class="btn btn-primary" onclick="openNewExam()">${icon('plus')} Nueva evaluación</button>
+      </div>
+
+      ${S.showNewExam ? newExamFormHtml() : ''}
+
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${S.exams.map(ex=>`
+          <div class="panel" style="padding:16px;display:flex;justify-content:space-between;gap:12px;align-items:center;">
+            <div style="cursor:pointer;flex:1;" onclick="openExam('${ex.id}')">
+              <div class="row center" style="gap:8px;">
+                <span style="color:var(--cyan);">${icon('book')}</span>
+                <div class="disp" style="font-weight:600;font-size:15px;">${escapeHtml(ex.name)}</div>
+                ${ex.active ? `<span class="pill pill-cyan">Activa</span>` : `<span class="pill pill-red">Oculta</span>`}
+              </div>
+              ${ex.description ? `<div style="font-size:13px;color:var(--muted);margin-top:6px;">${escapeHtml(ex.description)}</div>` : ''}
+              <div class="row wrap" style="gap:6px;margin-top:8px;">
+                <span class="pill pill-amber">${(ex.bank||[]).length} pregunta${(ex.bank||[]).length===1?'':'s'}</span>
+                <span class="pill pill-cyan">${ex.questionsPerExam} por estudiante</span>
+              </div>
+            </div>
+            <div class="row" style="gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toggleExamActive('${ex.id}')">${ex.active?'Ocultar':'Publicar'}</button>
+              <button class="iconbtn" onclick="event.stopPropagation();deleteExam('${ex.id}')">${ic.trash}</button>
+            </div>
+          </div>
+        `).join('')}
+        ${S.exams.length===0 && !S.showNewExam ? `<div style="color:var(--mutedDim);font-size:13px;text-align:center;padding:30px;">Aún no has creado ninguna evaluación. Crea la primera para empezar.</div>` : ''}
+      </div>
+    </div>
+  </div>
+`;
+
+function settingsPanelHtml(){
+  const c = S.config;
+  return `
+  <div class="panel" style="padding:18px;margin-bottom:6px;">
+    <div class="label">Nombre de la institución</div>
+    <input id="cfgInstitution" class="input" value="${escapeHtml(c.institutionName)}" style="margin-bottom:14px;max-width:420px;">
+    <button class="btn btn-outline btn-sm" onclick="saveInstitution()" style="margin-bottom:18px;">Guardar</button>
+    <div style="border-top:1px solid var(--lineSoft);padding-top:14px;">
+      <div class="disp" style="font-weight:600;font-size:14px;margin-bottom:10px;">Cambiar contraseña del panel</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;max-width:640px;">
+        <div><div class="label">Actual</div><div class="pwrow"><input id="pwCurrent" type="password" class="input">${pwToggleBtn('pwCurrent')}</div></div>
+        <div><div class="label">Nueva</div><div class="pwrow"><input id="pwNew" type="password" class="input">${pwToggleBtn('pwNew')}</div></div>
+        <div><div class="label">Repetir</div><div class="pwrow"><input id="pwNew2" type="password" class="input">${pwToggleBtn('pwNew2')}</div></div>
+      </div>
+      ${S.pwError ? `<div style="color:var(--red);font-size:12.5px;margin-bottom:10px;">${escapeHtml(S.pwError)}</div>` : ''}
+      ${S.pwSuccess ? `<div style="color:var(--cyan);font-size:12.5px;margin-bottom:10px;">${escapeHtml(S.pwSuccess)}</div>` : ''}
+      <button class="btn btn-outline btn-sm" onclick="changePassword()">Actualizar contraseña</button>
+    </div>
+  </div>
+  `;
+}
+
+function newExamFormHtml(){
+  return `
+  <div class="panel" style="padding:18px;margin-bottom:14px;">
+    <div class="label">Nombre de la evaluación</div>
+    <input id="newExamName" class="input" placeholder="Ej: Parcial 1 — Resistencia de Materiales" style="margin-bottom:12px;">
+    <div class="label">Descripción breve (opcional)</div>
+    <input id="newExamDesc" class="input" placeholder="Ej: Sección A, unidades 1 a 3" style="margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div><div class="label">Preguntas por estudiante</div><input id="newExamQPE" type="number" class="input" value="5"></div>
+      <div><div class="label">Máx. cambios de pestaña</div><input id="newExamMaxTab" type="number" class="input" value="3"></div>
+    </div>
+    <div class="label">Jornadas (separadas por coma)</div>
+    <input id="newExamJornadas" class="input" value="${DEFAULT_JORNADAS.join(', ')}" style="margin-bottom:14px;">
+    ${S.formError ? `<div style="color:var(--red);font-size:13px;margin-bottom:10px;">${escapeHtml(S.formError)}</div>` : ''}
+    <div class="row" style="gap:10px;">
+      <button class="btn btn-primary" onclick="createExam()">Crear evaluación</button>
+      <button class="btn btn-ghost" onclick="cancelNewExam()">Cancelar</button>
+    </div>
+  </div>
+  `;
+}
+
+views['instructor-exam'] = () => {
+  const ex = currentExam();
+  if(!ex) return `<div class="center-screen">Evaluación no encontrada. <button class="btn btn-outline" onclick="goInstructorHome()">Volver</button></div>`;
+  const tabs = [['bank','Banco de preguntas'],['config','Configuración'],['results','Resultados']];
+  return `
+  <div style="min-height:100vh;padding:20px 18px 60px;">
+    <div style="max-width:840px;margin:0 auto;">
+      <button class="btn btn-ghost" style="padding:6px 0;margin-bottom:12px;" onclick="goInstructorHome()">${icon('back')} Todas las evaluaciones</button>
+      <div class="row center" style="gap:10px;margin-bottom:6px;">
+        <span style="color:var(--cyan);">${icon('book')}</span>
+        <h1 class="disp" style="font-size:20px;margin:0;font-weight:700;">${escapeHtml(ex.name)}</h1>
+        ${ex.active ? `<span class="pill pill-cyan">Activa</span>` : `<span class="pill pill-red">Oculta</span>`}
+      </div>
+      ${ex.description ? `<div style="color:var(--muted);font-size:13px;margin-bottom:16px;">${escapeHtml(ex.description)}</div>` : '<div style="margin-bottom:16px;"></div>'}
+
+      <div class="row wrap" style="gap:8px;margin-bottom:18px;">
+        ${tabs.map(([id,label])=>`<button class="tabbtn ${S.instructorTab===id?'active':''}" onclick="setInstructorTab('${id}')">${label}</button>`).join('')}
+      </div>
+
+      ${renderInstructorTab(ex)}
+    </div>
+  </div>
+  `;
+};
+
+function renderInstructorTab(ex){
+  if(S.instructorTab==='bank') return bankTabHtml(ex);
+  if(S.instructorTab==='config') return examConfigTabHtml(ex);
+  return examResultsTabHtml(ex);
+}
+
+function bankTabHtml(ex){
+  const bank = ex.bank || [];
+  return `
+    <div class="row between center" style="margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <span class="pill pill-cyan">${bank.length} pregunta${bank.length===1?'':'s'} en el banco</span>
+      ${!S.showQForm ? `<button class="btn btn-primary" onclick="openQForm()">${icon('plus')} Nueva pregunta</button>` : ''}
+    </div>
+    ${S.showQForm ? qFormHtml() : ''}
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+      ${bank.map(q=>`
+        <div class="panel" style="padding:14px;display:flex;justify-content:space-between;gap:10px;">
+          <div>
+            <div class="disp" style="font-weight:600;font-size:14px;">${escapeHtml(q.title)}</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px;">${escapeHtml(q.statement)}</div>
+            <div class="row wrap" style="gap:6px;margin-top:8px;">
+              <span class="pill pill-cyan">${TYPE_LABEL[q.type]}</span>
+              <span class="pill pill-amber">${q.timeLimit}s</span>
+              ${q.type==='numeric' ? `<span class="pill pill-cyan">±${q.tolerance}%</span>` : ''}
+            </div>
+          </div>
+          <div class="row" style="gap:4px;">
+            <button class="btn btn-outline btn-sm" onclick="openQForm('${q.id}')">Editar</button>
+            <button class="iconbtn" onclick="deleteQuestion('${q.id}')">${ic.trash}</button>
+          </div>
+        </div>
+      `).join('')}
+      ${bank.length===0 && !S.showQForm ? `<div style="color:var(--mutedDim);font-size:13px;text-align:center;padding:30px;">Aún no hay preguntas en esta evaluación.</div>` : ''}
+    </div>
+  `;
+}
+
+function qFormHtml(){
+  const t = S.qFormType;
+  const types = Object.keys(TYPE_LABEL);
+  return `
+  <div class="panel" style="padding:20px;">
+    <div class="disp" style="font-weight:600;font-size:15px;margin-bottom:14px;">${S.editingQuestionId ? 'Editar pregunta' : 'Nueva pregunta'}</div>
+    <div class="label">Tipo de pregunta</div>
+    <div class="row wrap" style="gap:8px;margin-bottom:14px;">
+      ${types.map(id=>`<button class="typebtn ${t===id?'active':''}" onclick="setQFormType('${id}')">${TYPE_LABEL[id]}</button>`).join('')}
+    </div>
+    <div class="label">Título interno</div>
+    <input id="qTitle" class="input" placeholder="Ej: Esfuerzo axial en barra" style="margin-bottom:12px;">
+    <div class="label">${t==='numeric' ? 'Enunciado (usa {variable} para insertar valores aleatorios)' : 'Enunciado'}</div>
+    <textarea id="qStatement" class="input" rows="3" style="margin-bottom:14px;resize:vertical;" placeholder="${t==='numeric' ? 'Una barra de sección {A} mm² soporta una carga de {F} kN. Calcule el esfuerzo en MPa.' : (t==='checklist' ? 'Selecciona todas las unidades correctas del Sistema Internacional' : 'Escribe la pregunta')}"></textarea>
+
+    ${t==='numeric' ? numericFieldsHtml() : ''}
+    ${t==='boolean' ? booleanFieldsHtml() : ''}
+    ${t==='multiple' ? multipleFieldsHtml() : ''}
+    ${t==='checklist' ? checklistFieldsHtml() : ''}
+    ${t==='short' ? shortFieldsHtml() : ''}
+
+    ${S.qPreview ? `
+      <div class="panel" style="background:var(--panel2);padding:14px;margin-bottom:14px;">
+        <div class="mono" style="font-size:11px;color:var(--mutedDim);margin-bottom:6px;">VISTA PREVIA</div>
+        <div style="font-size:14px;margin-bottom:8px;">${escapeHtml(S.qPreview.text)}</div>
+        <span class="pill pill-cyan">Respuesta ≈ ${S.qPreview.ans.toFixed(4)}</span>
+      </div>` : ''}
+
+    ${S.formError ? `<div style="color:var(--red);font-size:13px;margin-bottom:12px;">${escapeHtml(S.formError)}</div>` : ''}
+
+    <div class="row" style="gap:10px;">
+      ${t==='numeric' ? `<button class="btn btn-outline" onclick="previewQuestion()">Probar valores</button>` : ''}
+      <button class="btn btn-primary" onclick="saveQuestion()">${S.editingQuestionId ? 'Guardar cambios' : 'Guardar pregunta'}</button>
+      <button class="btn btn-ghost" onclick="closeQForm()">Cancelar</button>
+    </div>
+  </div>
+  `;
+}
+
+function numericFieldsHtml(){
+  return `
+    <div class="label">Variables aleatorias</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+      ${S.formVars.map(v=>`
+        <div class="qgrid">
+          <input class="input" placeholder="nombre (ej: F)" value="${escapeHtml(v.name)}" oninput="updateVar('${v.id}','name',this.value.replace(/\\s/g,''))">
+          <input class="input" type="number" placeholder="mín" value="${v.min}" oninput="updateVar('${v.id}','min',this.value)">
+          <input class="input" type="number" placeholder="máx" value="${v.max}" oninput="updateVar('${v.id}','max',this.value)">
+          <input class="input" type="number" placeholder="decimales" value="${v.decimals}" oninput="updateVar('${v.id}','decimals',this.value)">
+          <button class="iconbtn" onclick="removeVar('${v.id}')">${ic.trash}</button>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn btn-outline" style="margin-bottom:16px;" onclick="addVar()">${icon('plus')} Agregar variable</button>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div><div class="label">Fórmula de la respuesta</div><input id="qFormula" class="input" placeholder="F * 1000 / A"></div>
+      <div><div class="label">Unidad</div><input id="qUnit" class="input" placeholder="MPa"></div>
+      <div><div class="label">Tolerancia (%)</div><input id="qTolerance" class="input" type="number" value="1"></div>
+      <div><div class="label">Tiempo límite (seg)</div><input id="qTimeLimit" class="input" type="number" value="90"></div>
+    </div>
+  `;
+}
+function booleanFieldsHtml(){
+  return `
+    <div class="label">Respuesta correcta</div>
+    <div class="row" style="gap:8px;margin-bottom:12px;">
+      <button class="btn ${S.formCorrectBool ? 'btn-primary' : 'btn-outline'}" onclick="setCorrectBool(true)">Verdadero</button>
+      <button class="btn ${!S.formCorrectBool ? 'btn-primary' : 'btn-outline'}" onclick="setCorrectBool(false)">Falso</button>
+    </div>
+    <div class="label">Tiempo límite (seg)</div>
+    <input id="qTimeLimit" class="input" type="number" value="60" style="max-width:160px;margin-bottom:14px;">
+  `;
+}
+function multipleFieldsHtml(){
+  return `
+    <div class="label">Opciones (marca la correcta)</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+      ${S.formOptions.map(o=>`
+        <div class="row center" style="gap:8px;">
+          <input type="radio" name="correctOpt" ${S.formCorrectOptionId===o.id?'checked':''} onchange="setCorrectOption('${o.id}')" style="accent-color:var(--cyan);">
+          <input class="input" placeholder="Texto de la opción" value="${escapeHtml(o.text)}" oninput="updateOpt('${o.id}', this.value)">
+          <button class="iconbtn" onclick="removeOpt('${o.id}')">${ic.trash}</button>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn btn-outline" onclick="addOpt()">${icon('plus')} Agregar opción</button>
+    <div class="label" style="margin-top:12px;">Tiempo límite (seg)</div>
+    <input id="qTimeLimit" class="input" type="number" value="60" style="max-width:160px;margin-bottom:14px;">
+  `;
+}
+function checklistFieldsHtml(){
+  return `
+    <div class="label">Opciones (marca todas las correctas — puede ser más de una)</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+      ${S.formOptions.map(o=>`
+        <div class="row center" style="gap:8px;">
+          <input type="checkbox" ${S.formCorrectOptionIds.includes(o.id)?'checked':''} onchange="toggleCorrectChecklist('${o.id}')" style="accent-color:var(--cyan);width:16px;height:16px;">
+          <input class="input" placeholder="Texto de la opción" value="${escapeHtml(o.text)}" oninput="updateOpt('${o.id}', this.value)">
+          <button class="iconbtn" onclick="removeOpt('${o.id}')">${ic.trash}</button>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn btn-outline" onclick="addOpt()">${icon('plus')} Agregar opción</button>
+    <div class="label" style="margin-top:12px;">Tiempo límite (seg)</div>
+    <input id="qTimeLimit" class="input" type="number" value="75" style="max-width:160px;margin-bottom:14px;">
+  `;
+}
+function shortFieldsHtml(){
+  return `
+    <div class="label">Respuestas aceptadas (separadas por coma; no distingue mayúsculas)</div>
+    <input id="qAccepted" class="input" placeholder="ley de ohm, ohm" style="margin-bottom:12px;">
+    <div class="label">Tiempo límite (seg)</div>
+    <input id="qTimeLimit" class="input" type="number" value="60" style="max-width:160px;margin-bottom:14px;">
+  `;
+}
+
+function examConfigTabHtml(ex){
+  return `
+  <div class="panel" style="padding:20px;">
+    <div class="label">Nombre de la evaluación</div>
+    <input id="exName" class="input" value="${escapeHtml(ex.name)}" style="margin-bottom:14px;">
+    <div class="label">Descripción</div>
+    <input id="exDesc" class="input" value="${escapeHtml(ex.description||'')}" style="margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div><div class="label">Preguntas por estudiante</div><input id="exQPE" class="input" type="number" value="${ex.questionsPerExam}"></div>
+      <div><div class="label">Máx. cambios de pestaña permitidos</div><input id="exMaxTab" class="input" type="number" value="${ex.maxTabSwitches}"></div>
+    </div>
+    <div class="label">Jornadas disponibles (separadas por coma)</div>
+    <input id="exJornadas" class="input" value="${escapeHtml((ex.jornadas||DEFAULT_JORNADAS).join(', '))}" style="margin-bottom:16px;">
+    <button class="btn btn-outline" onclick="saveExamConfig()">Guardar cambios</button>
+
+    <div style="color:var(--mutedDim);font-size:12.5px;margin-top:20px;line-height:1.6;border-top:1px solid var(--lineSoft);padding-top:14px;display:flex;gap:8px;">
+      <span style="flex-shrink:0;">${ic.shield}</span>
+      <div>
+        <b style="color:var(--muted);">Seguridad activa durante el examen:</b> copiar/cortar/pegar y clic derecho bloqueados,
+        temporizador por pregunta, y cierre automático al superar el número de cambios de pestaña. Un mismo carné no
+        puede repetir el examen <b>en este mismo navegador/dispositivo</b>; al importar los resultados de todos los
+        estudiantes, los carnés duplicados para esta evaluación se descartan automáticamente.
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function examResultsTabHtml(ex){
+  const jornadas = ['Todas', ...(ex.jornadas||DEFAULT_JORNADAS)];
+  const scoped = S.results.filter(r=>r.examId===ex.id);
+  const list = S.jornadaFilter==='Todas' ? scoped : scoped.filter(r=>r.jornada===S.jornadaFilter);
+  const avg = list.length ? (list.reduce((s,r)=>s+r.score,0)/list.length).toFixed(1) : '—';
+  return `
+    <div class="row between center wrap" style="margin-bottom:14px;gap:10px;">
+      <div class="row wrap center" style="gap:8px;">
+        <span class="pill pill-cyan">${list.length} entrega${list.length===1?'':'s'}</span>
+        <span class="pill pill-amber">Promedio ${avg}${avg!=='—'?'%':''}</span>
+      </div>
+      <div class="row center" style="gap:8px;flex-wrap:wrap;">
+        <select class="input" style="width:170px;" onchange="setJornadaFilter(this.value)">
+          ${jornadas.map(j=>`<option value="${escapeHtml(j)}" ${S.jornadaFilter===j?'selected':''}>${escapeHtml(j)}</option>`).join('')}
+        </select>
+        <label class="btn btn-outline" style="margin:0;">
+          Importar (.json)
+          <input type="file" accept="application/json" multiple style="display:none;" onchange="importResults(this.files)">
+        </label>
+        <button class="btn btn-outline" onclick="exportXlsx('${ex.id}')">Exportar a Excel</button>
+      </div>
+    </div>
+    ${resultsTableHtml(list)}
+  `;
+}
+
+function resultsTableHtml(list, showExamCol){
+  const cols = showExamCol ? '1.2fr 1fr 0.9fr 0.8fr 0.9fr 1fr' : '1.2fr 0.9fr 0.9fr 0.8fr 0.9fr 1fr';
+  return `
+    <div class="panel" style="overflow:hidden;">
+      <div class="tblhead" style="grid-template-columns:${cols};">
+        <div>ESTUDIANTE</div>${showExamCol?'<div>EVALUACIÓN</div>':''}<div>JORNADA</div><div>%</div><div>PESTAÑAS</div><div>FECHA</div>
+      </div>
+      ${list.map(r=>`
+        <div class="tblrow" style="grid-template-columns:${cols};">
+          <div style="font-size:13.5px;">
+            ${escapeHtml(r.studentName)}
+            <span class="mono" style="color:var(--mutedDim);font-size:11px;display:block;">${r.carne?escapeHtml(r.carne):''}</span>
+            ${r.disqualified ? '<span class="pill pill-red" style="margin-top:4px;">Anulado</span>' : ''}
+          </div>
+          ${showExamCol ? `<div style="font-size:13px;color:var(--muted);">${escapeHtml(r.examName||'—')}</div>` : ''}
+          <div style="font-size:13px;color:var(--muted);">${escapeHtml(r.jornada||'—')}</div>
+          <div class="mono" style="font-weight:700;font-size:15px;color:${r.score>=60?'var(--cyan)':'var(--red)'};">${r.score.toFixed(0)}%</div>
+          <div class="mono" style="font-size:13px;color:${r.tabSwitches>0?'var(--red)':'var(--mutedDim)'};">${r.tabSwitches}</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <span class="mono" style="font-size:10.5px;color:var(--mutedDim);">${new Date(r.submittedAt).toLocaleString()}</span>
+            <button class="btn btn-ghost btn-sm" style="padding:2px 0;justify-content:flex-start;color:var(--red);" onclick="removeResult('${r.id}')">Eliminar</button>
+          </div>
+        </div>
+      `).join('')}
+      ${list.length===0 ? `<div style="color:var(--mutedDim);font-size:13px;text-align:center;padding:30px;">Todavía no hay entregas. Pide a los estudiantes su archivo de resultado (.json) y usa "Importar".</div>` : ''}
+    </div>
+  `;
+}
+
+views['instructor-allresults'] = () => {
+  const jornadaSet = new Set();
+  S.results.forEach(r=>jornadaSet.add(r.jornada));
+  const jornadas = ['Todas', ...Array.from(jornadaSet).filter(Boolean)];
+  const list = S.jornadaFilter==='Todas' ? S.results : S.results.filter(r=>r.jornada===S.jornadaFilter);
+  const sorted = [...list].sort((a,b)=>b.submittedAt-a.submittedAt);
+  const avg = list.length ? (list.reduce((s,r)=>s+r.score,0)/list.length).toFixed(1) : '—';
+  return `
+  <div style="min-height:100vh;padding:20px 18px 60px;">
+    <div style="max-width:920px;margin:0 auto;">
+      <button class="btn btn-ghost" style="padding:6px 0;margin-bottom:16px;" onclick="goInstructorHome()">${icon('back')} Panel del docente</button>
+      <h1 class="disp" style="font-size:20px;margin:0 0 16px;font-weight:700;">Reporte general — todas las evaluaciones</h1>
+      <div class="row between center wrap" style="margin-bottom:14px;gap:10px;">
+        <div class="row wrap center" style="gap:8px;">
+          <span class="pill pill-cyan">${list.length} entrega${list.length===1?'':'s'}</span>
+          <span class="pill pill-amber">Promedio ${avg}${avg!=='—'?'%':''}</span>
+        </div>
+        <div class="row center" style="gap:8px;flex-wrap:wrap;">
+          <select class="input" style="width:170px;" onchange="setJornadaFilter(this.value)">
+            ${jornadas.map(j=>`<option value="${escapeHtml(j)}" ${S.jornadaFilter===j?'selected':''}>${escapeHtml(j)}</option>`).join('')}
+          </select>
+          <label class="btn btn-outline" style="margin:0;">
+            Importar (.json)
+            <input type="file" accept="application/json" multiple style="display:none;" onchange="importResults(this.files)">
+          </label>
+          <button class="btn btn-outline" onclick="exportXlsx(null)">Exportar a Excel</button>
+        </div>
+      </div>
+      ${resultsTableHtml(sorted, true)}
+    </div>
+  </div>
+  `;
+};
+
+/* ---------------- STUDENT VIEWS ---------------- */
+views['student-select-exam'] = () => {
+  const active = S.exams.filter(e=>e.active && (e.bank||[]).length>0);
+  return `
+  <div style="min-height:100vh;padding:24px 18px;">
+    <div style="max-width:640px;margin:60px auto;">
+      <button class="btn btn-ghost" style="padding:6px 0;margin-bottom:16px;" onclick="goLanding()">${icon('back')} Volver</button>
+      <h1 class="disp" style="font-size:22px;margin:0 0 4px;font-weight:700;">Elige tu evaluación</h1>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Selecciona la evaluación correspondiente a tu clase.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${active.map(ex=>`
+          <div class="panel examcard" onclick="selectExamForStudent('${ex.id}')">
+            <div class="row center" style="gap:8px;">
+              <span style="color:var(--amber);">${icon('book')}</span>
+              <div class="disp" style="font-weight:600;font-size:15px;">${escapeHtml(ex.name)}</div>
+            </div>
+            ${ex.description ? `<div style="font-size:13px;color:var(--muted);margin-top:6px;">${escapeHtml(ex.description)}</div>` : ''}
+            <div class="row wrap" style="gap:6px;margin-top:8px;">
+              <span class="pill pill-cyan">${Math.min(ex.questionsPerExam, (ex.bank||[]).length)} preguntas</span>
+              <span class="pill pill-red">Máx. ${ex.maxTabSwitches} cambios de pestaña</span>
+            </div>
+          </div>
+        `).join('')}
+        ${active.length===0 ? `<div style="color:var(--mutedDim);font-size:13px;text-align:center;padding:30px;">Tu docente todavía no ha publicado ninguna evaluación.</div>` : ''}
+      </div>
+    </div>
+  </div>
+  `;
+};
+
+views['student-register'] = () => {
+  const ex = currentExam();
+  if(!ex) return `<div class="center-screen">Evaluación no encontrada. <button class="btn btn-outline" onclick="goStudentSelectExam()">Volver</button></div>`;
+  const jornadas = ex.jornadas || DEFAULT_JORNADAS;
+  return `
+  <div class="center-screen">
+    <div class="panel" style="padding:26px;width:380px;">
+      <button class="btn btn-ghost" style="padding:6px 0;margin-bottom:16px;" onclick="goStudentSelectExam()">${icon('back')} Cambiar evaluación</button>
+      <div class="disp" style="font-weight:700;font-size:18px;margin-bottom:4px;">${escapeHtml(ex.name)}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px;">Regístrate para comenzar. Cada estudiante recibe preguntas y valores distintos.</div>
+      <div class="label">Nombre completo</div>
+      <input id="stuName" class="input" placeholder="Escribe tu nombre" style="margin-bottom:14px;">
+      <div class="label">Carné</div>
+      <input id="stuCarne" class="input mono" placeholder="Ej: 2024-00123" style="margin-bottom:14px;">
+      <div class="label">Jornada</div>
+      <select id="stuJornada" class="input" style="margin-bottom:14px;">
+        ${jornadas.map(j=>`<option value="${escapeHtml(j)}">${escapeHtml(j)}</option>`).join('')}
+      </select>
+      ${S.regError ? `<div style="color:var(--red);font-size:12.5px;margin-bottom:14px;">${escapeHtml(S.regError)}</div>` : ''}
+      <div class="row wrap" style="gap:8px;margin-bottom:18px;">
+        <span class="pill pill-cyan">${Math.min(ex.questionsPerExam, (ex.bank||[]).length)} preguntas</span>
+        <span class="pill pill-amber">Tiempo por pregunta</span>
+        <span class="pill pill-red">Máx. ${ex.maxTabSwitches} cambios de pestaña</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="startExam()">Iniciar examen ${icon('chev')}</button>
+    </div>
+  </div>
+  `;
+};
+
+views['student-exam'] = () => {
+  const q = examSession.questions[examSession.idx];
+  const total = examSession.questions.length;
+  const switchesLeft = Math.max(0, examSession.maxTabSwitches - examSession.tabSwitches);
+  return `
+  <div id="examContainer" style="min-height:100vh;padding:18px 16px 60px;user-select:none;"
+       oncopy="return blockClipboard(event)" oncut="return blockClipboard(event)" onpaste="return blockClipboard(event)" oncontextmenu="return false;">
+    <div style="max-width:620px;margin:0 auto;">
+      <div class="row between center wrap" style="margin-bottom:14px;gap:8px;">
+        <div class="row center" style="gap:8px;color:var(--mutedDim);">
+          <span style="color:var(--cyan);">${ic.radio}</span>
+          <span class="mono" style="font-size:12px;">PREGUNTA ${examSession.idx+1} / ${total}</span>
+        </div>
+        <div class="row center" style="gap:14px;">
+          <div class="row center" style="gap:6px;">
+            <span style="color:${examSession.tabSwitches>0?'var(--red)':'var(--mutedDim)'};">${ic.ban}</span>
+            <span id="switchCounter" class="mono" style="font-size:11px;color:${examSession.tabSwitches>0?'var(--red)':'var(--mutedDim)'};">${switchesLeft} CAMBIOS DISPONIBLES</span>
+          </div>
+          <div class="row center" style="gap:6px;">
+            <span style="color:var(--mutedDim);">${ic.lock}</span>
+            <span class="mono" style="font-size:11px;color:var(--mutedDim);">SESIÓN SEGURA</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="tabBanner"></div>
+
+      <div class="panel" style="padding:14px 16px;margin-bottom:14px;">
+        <div class="row between center" style="margin-bottom:8px;">
+          <span class="mono" style="font-size:11px;color:var(--mutedDim);">TIEMPO RESTANTE</span>
+          <span id="timerText" class="mono" style="font-size:26px;font-weight:700;color:var(--cyan);">${fmtTime(q.timeLimit)}</span>
+        </div>
+        <div class="grid-bar"><div id="timerBar" style="width:100%;background:var(--cyan);"></div></div>
+      </div>
+
+      <div class="qcard panel">
+        <div class="row between" style="margin-bottom:8px;">
+          <span class="mono" style="font-size:11px;color:var(--cyan);letter-spacing:.6px;">${escapeHtml(q.title.toUpperCase())}</span>
+          <span class="pill pill-cyan">${TYPE_LABEL[q.type]}</span>
+        </div>
+        <div style="font-size:16px;line-height:1.6;margin-bottom:18px;">${escapeHtml(q.text)}</div>
+        <div id="answerArea">${answerAreaHtml(q)}</div>
+      </div>
+
+      <button id="nextBtn" class="btn btn-primary" style="width:100%;justify-content:center;" disabled onclick="submitAnswer(false)">
+        ${examSession.idx+1>=total ? 'Finalizar examen' : 'Siguiente pregunta'} ${icon('chev')}
+      </button>
+      <div style="font-size:11.5px;color:var(--mutedDim);text-align:center;margin-top:14px;">Copiar, pegar y clic derecho están deshabilitados durante el examen.</div>
+    </div>
+  </div>
+  `;
+};
+
+function answerAreaHtml(q){
+  if(q.type==='numeric'){
+    return `<div class="label">Tu respuesta ${q.unit?`(${escapeHtml(q.unit)})`:''}</div>
+      <input id="ansInput" type="number" class="input mono" style="font-size:16px;" placeholder="Escribe el valor numérico" oninput="onFreeAnswerInput(this.value)" autofocus>`;
+  }
+  if(q.type==='boolean'){
+    return `<div class="row" style="gap:10px;">
+      <button id="optTrue" class="btn btn-outline" style="flex:1;justify-content:center;" onclick="chooseBoolean(true)">Verdadero</button>
+      <button id="optFalse" class="btn btn-outline" style="flex:1;justify-content:center;" onclick="chooseBoolean(false)">Falso</button>
+    </div>`;
+  }
+  if(q.type==='multiple'){
+    return `<div style="display:flex;flex-direction:column;gap:8px;">
+      ${q.options.map(o=>`<button class="optbtn" id="opt_${o.id}" onclick="chooseOption('${o.id}')">${escapeHtml(o.text)}</button>`).join('')}
+    </div>`;
+  }
+  if(q.type==='checklist'){
+    return `<div style="display:flex;flex-direction:column;gap:8px;">
+      ${q.options.map(o=>`<button class="optbtn" id="opt_${o.id}" onclick="toggleChecklistOption('${o.id}')"><span class="chk" id="chk_${o.id}"></span>${escapeHtml(o.text)}</button>`).join('')}
+      <div style="font-size:11.5px;color:var(--mutedDim);">Puedes marcar varias opciones.</div>
+    </div>`;
+  }
+  return `<div class="label">Tu respuesta</div><input id="ansInput" class="input" placeholder="Escribe tu respuesta" oninput="onFreeAnswerInput(this.value)" autofocus>`;
+}
+
+views['student-result'] = () => {
+  const r = S.lastResult;
+  const pass = r.score>=60 && !r.disqualified;
+  return `
+  <div class="center-screen">
+    <div class="panel" style="padding:30px;width:380px;text-align:center;">
+      <div style="color:${r.disqualified?'var(--red)':pass?'var(--cyan)':'var(--red)'};display:flex;justify-content:center;">${r.disqualified?ic.shield:(pass?ic.check:ic.x)}</div>
+      ${r.disqualified ? `<div class="disp" style="color:var(--red);font-weight:700;font-size:14px;margin-top:12px;">EXAMEN ANULADO</div>` : ''}
+      <div class="mono" style="font-size:40px;font-weight:700;color:${r.disqualified?'var(--red)':pass?'var(--cyan)':'var(--red)'};margin-top:10px;">${r.score.toFixed(0)}%</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px;">${r.correctCount} de ${r.total} respuestas correctas</div>
+      <div style="color:var(--mutedDim);font-size:12px;margin-top:6px;">${escapeHtml(r.examName)}</div>
+      ${r.disqualifyReason ? `<div style="color:var(--red);font-size:12.5px;margin-top:10px;">${escapeHtml(r.disqualifyReason)}</div>` : ''}
+      ${(!r.disqualified && r.tabSwitches>0) ? `<div style="margin-top:14px;"><span class="pill pill-red">${r.tabSwitches} cambio(s) de pestaña registrados</span></div>` : ''}
+      <div style="font-size:11.5px;color:var(--mutedDim);margin-top:16px;line-height:1.5;">
+        Se descargó un archivo con tu resultado. Envíaselo a tu docente para que lo incluya en el reporte.
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px;" onclick="goLanding()">Volver al inicio</button>
+    </div>
+  </div>
+  `;
+};
+
+/* =========================================================================
+   ACTIONS — navigation
+========================================================================= */
+function goLanding(){
+  stopExamListeners(); clearInterval(timerInterval); examSession=null;
+  S.screen='landing'; S.authError=''; S.currentExamId=null; S.authed=false; // exige contraseña cada vez
+  render();
+}
+function goInstructor(){
+  S.screen = 'instructor-auth';
+  S.authError='';
+  render();
+  const el=document.getElementById('pwInput'); if(el) el.focus();
+}
+function goInstructorHome(){ S.currentExamId=null; S.showQForm=false; S.screen='instructor'; render(); }
+function goAllResults(){ S.jornadaFilter='Todas'; S.screen='instructor-allresults'; render(); }
+function goStudentSelectExam(){ S.screen='student-select-exam'; render(); }
+function selectExamForStudent(id){ S.currentExamId=id; S.screen='student-register'; S.regError=''; render(); }
+
+function tryAuth(){
+  const val = document.getElementById('pwInput').value;
+  if(val === S.config.password){ S.authed = true; S.authError=''; S.screen='instructor'; render(); }
+  else { S.authError = 'Contraseña incorrecta. Intenta de nuevo.'; render(); const el=document.getElementById('pwInput'); if(el) el.focus(); }
+}
+function toggleSettings(){ S.showSettings = !S.showSettings; render(); }
+function setInstructorTab(id){ S.instructorTab=id; S.showQForm=false; S.jornadaFilter='Todas'; render(); }
+function openExam(id){ S.currentExamId=id; S.screen='instructor-exam'; S.instructorTab='bank'; S.showQForm=false; render(); }
+
+/* =========================================================================
+   ACTIONS — exams
+========================================================================= */
+function openNewExam(){ S.showNewExam=true; S.formError=''; render(); }
+function cancelNewExam(){ S.showNewExam=false; render(); }
+function createExam(){
+  const name = document.getElementById('newExamName').value.trim();
+  if(!name){ S.formError='Escribe un nombre para la evaluación.'; render(); return; }
+  const desc = document.getElementById('newExamDesc').value.trim();
+  const qpe = Number(document.getElementById('newExamQPE').value) || 5;
+  const maxTab = Number(document.getElementById('newExamMaxTab').value);
+  const jornadas = document.getElementById('newExamJornadas').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const ex = {
+    id: genId(), name, description: desc,
+    questionsPerExam: qpe, maxTabSwitches: Number.isFinite(maxTab)?maxTab:3,
+    jornadas: jornadas.length?jornadas:DEFAULT_JORNADAS,
+    active: true, bank: [],
+  };
+  S.exams = [...S.exams, ex];
+  persistExams();
+  S.showNewExam=false; S.formError='';
+  openExam(ex.id);
+}
+function toggleExamActive(id){
+  S.exams = S.exams.map(e=>e.id===id ? {...e, active:!e.active} : e);
+  persistExams(); render();
+}
+function deleteExam(id){
+  if(!confirm('¿Eliminar esta evaluación y todas sus preguntas? Esta acción no se puede deshacer.')) return;
+  S.exams = S.exams.filter(e=>e.id!==id);
+  persistExams(); render();
+}
+function saveExamConfig(){
+  const ex = currentExam(); if(!ex) return;
+  ex.name = document.getElementById('exName').value.trim() || ex.name;
+  ex.description = document.getElementById('exDesc').value.trim();
+  ex.questionsPerExam = Number(document.getElementById('exQPE').value) || ex.questionsPerExam;
+  ex.maxTabSwitches = Number(document.getElementById('exMaxTab').value);
+  ex.jornadas = document.getElementById('exJornadas').value.split(',').map(s=>s.trim()).filter(Boolean);
+  persistExams(); render();
+}
+function saveInstitution(){
+  S.config.institutionName = document.getElementById('cfgInstitution').value.trim() || S.config.institutionName;
+  saveConfig(S.config); render();
+}
+function changePassword(){
+  const cur = document.getElementById('pwCurrent').value;
+  const n1 = document.getElementById('pwNew').value;
+  const n2 = document.getElementById('pwNew2').value;
+  S.pwError=''; S.pwSuccess='';
+  if(cur !== S.config.password){ S.pwError='La contraseña actual no coincide.'; render(); return; }
+  if(!n1 || n1.length<4){ S.pwError='La nueva contraseña debe tener al menos 4 caracteres.'; render(); return; }
+  if(n1 !== n2){ S.pwError='Las contraseñas nuevas no coinciden.'; render(); return; }
+  S.config.password = n1;
+  saveConfig(S.config);
+  S.pwSuccess='Contraseña actualizada correctamente.';
+  render();
+}
+
+/* =========================================================================
+   ACTIONS — question bank (scoped to currentExam)
+========================================================================= */
+function openQForm(editId){
+  const ex = currentExam();
+  const existing = editId && ex ? (ex.bank||[]).find(q=>q.id===editId) : null;
+
+  S.showQForm=true; S.qPreview=null; S.formError='';
+  S.editingQuestionId = existing ? existing.id : null;
+
+  if(existing){
+    S.qFormType = existing.type;
+    S.formVars = existing.type==='numeric'
+      ? existing.variables.map(v=>({id:genId(), name:v.name, min:v.min, max:v.max, decimals:v.decimals}))
+      : [{id:genId(),name:'',min:1,max:10,decimals:0}];
+    if(existing.type==='multiple' || existing.type==='checklist'){
+      S.formOptions = existing.options.map(o=>({id:genId(), text:o.text}));
+      if(existing.type==='multiple'){
+        const correctIdx = existing.options.findIndex(o=>o.id===existing.correctOptionId);
+        S.formCorrectOptionId = correctIdx>=0 ? S.formOptions[correctIdx].id : null;
+        S.formCorrectOptionIds = [];
+      } else {
+        const correctIdxs = existing.options.map((o,i)=>existing.correctOptionIds.includes(o.id)?i:-1).filter(i=>i>=0);
+        S.formCorrectOptionIds = correctIdxs.map(i=>S.formOptions[i].id);
+        S.formCorrectOptionId = null;
+      }
+    } else {
+      S.formOptions = [{id:genId(),text:''},{id:genId(),text:''}];
+      S.formCorrectOptionId=null; S.formCorrectOptionIds=[];
+    }
+    S.formCorrectBool = existing.type==='boolean' ? !!existing.correctBool : true;
+  } else {
+    S.qFormType='numeric';
+    S.formVars=[{id:genId(),name:'',min:1,max:10,decimals:0}];
+    S.formOptions=[{id:genId(),text:''},{id:genId(),text:''}];
+    S.formCorrectOptionId=null; S.formCorrectOptionIds=[]; S.formCorrectBool=true;
+  }
+  render();
+  if(existing){
+    const set = (id,val) => { const el=document.getElementById(id); if(el) el.value = val; };
+    set('qTitle', existing.title);
+    set('qStatement', existing.statement);
+    set('qTimeLimit', existing.timeLimit);
+    if(existing.type==='numeric'){ set('qFormula', existing.formula); set('qUnit', existing.unit); set('qTolerance', existing.tolerance); }
+    if(existing.type==='short'){ set('qAccepted', (existing.acceptedAnswers||[]).join(', ')); }
+  }
+}
+function closeQForm(){ S.showQForm=false; S.editingQuestionId=null; render(); }
+function setQFormType(t){ S.qFormType=t; S.qPreview=null; S.formError=''; render(); }
+function addVar(){ S.formVars.push({id:genId(),name:'',min:1,max:10,decimals:0}); render(); }
+function removeVar(id){ S.formVars = S.formVars.filter(v=>v.id!==id); render(); }
+function updateVar(id, field, value){ const v = S.formVars.find(x=>x.id===id); if(v) v[field]=value; }
+function addOpt(){ S.formOptions.push({id:genId(),text:''}); render(); }
+function removeOpt(id){
+  S.formOptions = S.formOptions.filter(o=>o.id!==id);
+  if(S.formCorrectOptionId===id) S.formCorrectOptionId=null;
+  S.formCorrectOptionIds = S.formCorrectOptionIds.filter(x=>x!==id);
+  render();
+}
+function updateOpt(id, value){ const o=S.formOptions.find(x=>x.id===id); if(o) o.text=value; }
+function setCorrectOption(id){ S.formCorrectOptionId=id; }
+function toggleCorrectChecklist(id){
+  if(S.formCorrectOptionIds.includes(id)) S.formCorrectOptionIds = S.formCorrectOptionIds.filter(x=>x!==id);
+  else S.formCorrectOptionIds = [...S.formCorrectOptionIds, id];
+}
+function setCorrectBool(v){ S.formCorrectBool=v; render(); }
+
+function readVarsFromForm(){
+  return S.formVars.map(v=>({ id:v.id, name:(v.name||'').trim(), min:Number(v.min), max:Number(v.max), decimals:Number(v.decimals) }));
+}
+function previewQuestion(){
+  S.formError='';
+  const statement = document.getElementById('qStatement').value;
+  const formula = document.getElementById('qFormula').value;
+  const vars = readVarsFromForm();
+  try{
+    const { scope, display } = randomizeVariables(vars);
+    const ans = computeAnswer(formula, scope);
+    if(!Number.isFinite(ans)) throw new Error('La fórmula no produjo un número válido.');
+    S.qPreview = { text: fillTemplate(statement, display), ans };
+  }catch(e){
+    S.formError = e.message || 'Error al evaluar la fórmula.';
+    S.qPreview = null;
+  }
+  render();
+}
+
+function saveQuestion(){
+  const ex = currentExam(); if(!ex) return;
+  const type = S.qFormType;
+  const title = document.getElementById('qTitle').value.trim();
+  const statement = document.getElementById('qStatement').value.trim();
+  const timeLimit = Number(document.getElementById('qTimeLimit').value);
+  S.formError='';
+
+  if(!title || !statement){ S.formError='Completa el título y el enunciado.'; render(); return; }
+
+  const qId = S.editingQuestionId || genId();
+  let q = { id:qId, type, title, statement, timeLimit: timeLimit || 60 };
+
+  if(type==='numeric'){
+    const formula = document.getElementById('qFormula').value.trim();
+    const unit = document.getElementById('qUnit').value.trim();
+    const tolerance = Number(document.getElementById('qTolerance').value);
+    const vars = readVarsFromForm();
+    if(!formula || vars.some(v=>!v.name)){ S.formError='Completa la fórmula y el nombre de cada variable.'; render(); return; }
+    q = { ...q, variables:vars, formula, unit, tolerance: Number.isFinite(tolerance)?tolerance:1 };
+  } else if(type==='boolean'){
+    q = { ...q, correctBool: S.formCorrectBool };
+  } else if(type==='multiple'){
+    const valid = S.formOptions.filter(o=>o.text && o.text.trim());
+    if(valid.length<2){ S.formError='Agrega al menos dos opciones con texto.'; render(); return; }
+    if(!S.formCorrectOptionId || !valid.some(o=>o.id===S.formCorrectOptionId)){ S.formError='Selecciona cuál opción es la correcta.'; render(); return; }
+    q = { ...q, options: valid.map(o=>({id:o.id,text:o.text.trim()})), correctOptionId: S.formCorrectOptionId };
+  } else if(type==='checklist'){
+    const valid = S.formOptions.filter(o=>o.text && o.text.trim());
+    if(valid.length<2){ S.formError='Agrega al menos dos opciones con texto.'; render(); return; }
+    const validIds = new Set(valid.map(o=>o.id));
+    const correctIds = S.formCorrectOptionIds.filter(id=>validIds.has(id));
+    if(correctIds.length===0){ S.formError='Marca al menos una opción como correcta.'; render(); return; }
+    q = { ...q, options: valid.map(o=>({id:o.id,text:o.text.trim()})), correctOptionIds: correctIds };
+  } else if(type==='short'){
+    const raw = document.getElementById('qAccepted').value;
+    const list = raw.split(',').map(s=>s.trim()).filter(Boolean);
+    if(list.length===0){ S.formError='Escribe al menos una respuesta aceptada.'; render(); return; }
+    q = { ...q, acceptedAnswers:list };
+  }
+
+  ex.bank = S.editingQuestionId
+    ? (ex.bank||[]).map(item => item.id===qId ? q : item)
+    : [...(ex.bank||[]), q];
+
+  persistExams();
+  S.showQForm=false;
+  S.editingQuestionId=null;
+  render();
+}
+function deleteQuestion(id){
+  const ex = currentExam(); if(!ex) return;
+  ex.bank = (ex.bank||[]).filter(q=>q.id!==id);
+  persistExams(); render();
+}
+
+/* =========================================================================
+   ACTIONS — results import/export
+========================================================================= */
+function setJornadaFilter(v){ S.jornadaFilter=v; render(); }
+function removeResult(id){
+  if(!confirm('¿Eliminar este resultado? Esto permitirá que ese carné vuelva a presentar la evaluación en este navegador.')) return;
+  S.results = S.results.filter(r=>r.id!==id);
+  saveResults(S.results);
+  render();
+}
+function importResults(fileList){
+  const files = Array.from(fileList||[]);
+  let pending = files.length;
+  if(!pending) return;
+  let added = 0, skippedDup = 0;
+  files.forEach(f=>{
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const data = JSON.parse(reader.result);
+        if(data && data.examId){
+          const carneKey = data.carneKey || normText(data.carne);
+          const isDup = S.results.some(r=>r.examId===data.examId && (r.carneKey||normText(r.carne))===carneKey);
+          const alreadyImported = S.results.some(r=>r.id===data.id);
+          if(!alreadyImported && !isDup){ S.results.push(data); added++; }
+          else if(isDup){ skippedDup++; }
+        }
+      }catch{}
+      pending--;
+      if(pending===0){
+        saveResults(S.results);
+        render();
+        if(skippedDup>0) alert(`Se importaron ${added} resultado(s). Se descartaron ${skippedDup} por carné duplicado en la misma evaluación.`);
+      }
+    };
+    reader.readAsText(f);
+  });
+}
+function exportXlsx(examId){
+  const source = examId ? S.results.filter(r=>r.examId===examId) : S.results;
+  const rows = source.map(r=>({
+    Evaluacion: r.examName||'',
+    Estudiante: r.studentName,
+    Carne: r.carne||'',
+    Jornada: r.jornada||'',
+    'Porcentaje (%)': Number(r.score.toFixed(1)),
+    Correctas: r.correctCount,
+    Total: r.total,
+    'Cambios de pestaña': r.tabSwitches,
+    Anulado: r.disqualified ? 'Sí' : 'No',
+    Fecha: new Date(r.submittedAt).toLocaleString(),
+  }));
+  if(rows.length===0){ alert('No hay resultados para exportar todavía.'); return; }
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Resultados');
+  XLSX.writeFile(wb, 'resultados_' + Date.now() + '.xlsx');
+}
+
+/* =========================================================================
+   ACTIONS — student exam
+========================================================================= */
+function startExam(){
+  const ex = currentExam(); if(!ex) return;
+  const name = document.getElementById('stuName').value.trim();
+  const carne = document.getElementById('stuCarne').value.trim();
+  const jornada = document.getElementById('stuJornada').value;
+  S.regError = '';
+  if(!name){ S.regError='Escribe tu nombre completo.'; render(); return; }
+  if(!carne){ S.regError='Escribe tu carné.'; render(); return; }
+
+  const carneKey = normText(carne);
+  const already = S.results.some(r=>r.examId===ex.id && (r.carneKey||normText(r.carne))===carneKey);
+  if(already){
+    S.regError = 'Este carné ya presentó esta evaluación en este dispositivo. Solo se permite un intento por carné.';
+    render();
+    return;
+  }
+
+  const n = Math.min(ex.questionsPerExam || 5, (ex.bank||[]).length);
+  const chosen = shuffle(ex.bank||[]).slice(0, n);
+  const questions = chosen.map(instantiateQuestion);
+  examSession = {
+    examId: ex.id, examName: ex.name, maxTabSwitches: ex.maxTabSwitches,
+    studentName: name, carne, carneKey, jornada,
+    questions, idx: 0, answers: [],
+    tabSwitches: 0, pasteAttempts: 0,
+    currentAnswer: null, checklistSelected: [], disqualified: false,
+  };
+  S.screen = 'student-exam';
+  render();
+  attachExamListeners();
+  startQuestionTimer();
+}
+
+function onFreeAnswerInput(val){
+  examSession.currentAnswer = val;
+  document.getElementById('nextBtn').disabled = (val===null || val==='');
+}
+function chooseBoolean(val){
+  examSession.currentAnswer = val;
+  document.getElementById('optTrue').className = 'btn ' + (val===true ? 'btn-primary' : 'btn-outline');
+  document.getElementById('optFalse').className = 'btn ' + (val===false ? 'btn-primary' : 'btn-outline');
+  document.getElementById('optTrue').style.flex='1'; document.getElementById('optTrue').style.justifyContent='center';
+  document.getElementById('optFalse').style.flex='1'; document.getElementById('optFalse').style.justifyContent='center';
+  document.getElementById('nextBtn').disabled = false;
+}
+function chooseOption(id){
+  examSession.currentAnswer = id;
+  const q = examSession.questions[examSession.idx];
+  q.options.forEach(o=>{
+    const el = document.getElementById('opt_'+o.id);
+    if(el) el.className = 'optbtn' + (o.id===id ? ' active' : '');
+  });
+  document.getElementById('nextBtn').disabled = false;
+}
+function toggleChecklistOption(id){
+  const sel = examSession.checklistSelected;
+  const i = sel.indexOf(id);
+  if(i>=0) sel.splice(i,1); else sel.push(id);
+  examSession.currentAnswer = [...sel];
+  const btn = document.getElementById('opt_'+id);
+  const chk = document.getElementById('chk_'+id);
+  const on = sel.includes(id);
+  if(btn) btn.className = 'optbtn' + (on ? ' active' : '');
+  if(chk){ chk.className = 'chk' + (on ? ' on' : ''); chk.innerHTML = on ? ic.checksm : ''; }
+  document.getElementById('nextBtn').disabled = sel.length===0;
+}
+
+function startQuestionTimer(){
+  clearInterval(timerInterval);
+  const q = examSession.questions[examSession.idx];
+  let remaining = q.timeLimit;
+  updateTimerUI(remaining, q.timeLimit);
+  timerInterval = setInterval(()=>{
+    remaining -= 1;
+    if(remaining<=0){
+      clearInterval(timerInterval);
+      submitAnswer(true);
+    } else {
+      updateTimerUI(remaining, q.timeLimit);
+    }
+  }, 1000);
+}
+function updateTimerUI(remaining, total){
+  const el = document.getElementById('timerText');
+  const bar = document.getElementById('timerBar');
+  if(!el || !bar) return;
+  el.textContent = fmtTime(remaining);
+  const pct = Math.max(0, (remaining/total)*100);
+  bar.style.width = pct + '%';
+  const tone = remaining<=10 ? 'var(--red)' : remaining<=30 ? 'var(--amber)' : 'var(--cyan)';
+  el.style.color = tone;
+  bar.style.background = tone;
+}
+
+function submitAnswer(auto){
+  if(!examSession) return;
+  clearInterval(timerInterval);
+  const q = examSession.questions[examSession.idx];
+  const correct = auto ? false : evaluateAnswer(q, examSession.currentAnswer);
+  examSession.answers.push({ qid:q.qid, userAnswer: auto ? null : examSession.currentAnswer, correct, auto });
+  examSession.currentAnswer = null;
+  examSession.checklistSelected = [];
+  if(examSession.idx+1 >= examSession.questions.length){
+    finishExam(false, null);
+  } else {
+    examSession.idx += 1;
+    render();
+    startQuestionTimer();
+  }
+}
+
+/* ---- anti-cheat: tab switching ---- */
+function attachExamListeners(){
+  if(tabListenersAttached) return;
+  tabListenersAttached = true;
+  document.addEventListener('visibilitychange', onVisChange);
+  window.addEventListener('blur', onWindowBlur);
+}
+function stopExamListeners(){
+  if(!tabListenersAttached) return;
+  tabListenersAttached = false;
+  document.removeEventListener('visibilitychange', onVisChange);
+  window.removeEventListener('blur', onWindowBlur);
+}
+function onVisChange(){ if(document.hidden) flagTabSwitch(); }
+function onWindowBlur(){ flagTabSwitch(); }
+function flagTabSwitch(){
+  if(!examSession || examSession.disqualified) return;
+  examSession.tabSwitches += 1;
+  const banner = document.getElementById('tabBanner');
+  const counter = document.getElementById('switchCounter');
+  const max = examSession.maxTabSwitches;
+  if(banner){
+    banner.innerHTML = `<div class="banner-red">${ic.shield} Cambio de pestaña/ventana detectado (${examSession.tabSwitches}/${max}). Al superar el límite el examen se cerrará automáticamente.</div>`;
+    setTimeout(()=>{ if(banner) banner.innerHTML=''; }, 3500);
+  }
+  if(counter){
+    const left = Math.max(0, max - examSession.tabSwitches);
+    counter.textContent = left + ' CAMBIOS DISPONIBLES';
+    counter.style.color = 'var(--red)';
+  }
+  if(examSession.tabSwitches > max){
+    examSession.disqualified = true;
+    clearInterval(timerInterval);
+    const remainingBlank = examSession.questions.slice(examSession.idx).map(q=>({ qid:q.qid, userAnswer:null, correct:false, auto:true }));
+    examSession.answers = [...examSession.answers, ...remainingBlank];
+    finishExam(true, `Superó el límite de ${max} cambios de pestaña.`);
+  }
+}
+function blockClipboard(e){
+  if(examSession) examSession.pasteAttempts += 1;
+  e.preventDefault();
+  return false;
+}
+
+function finishExam(disqualified, reason){
+  stopExamListeners();
+  clearInterval(timerInterval);
+  const scoreCount = examSession.answers.filter(a=>a.correct).length;
+  const total = examSession.answers.length;
+  const score = total ? (scoreCount/total)*100 : 0;
+  const result = {
+    id: genId(),
+    examId: examSession.examId,
+    examName: examSession.examName,
+    studentName: examSession.studentName,
+    carne: examSession.carne,
+    carneKey: examSession.carneKey,
+    jornada: examSession.jornada,
+    score, total,
+    correctCount: scoreCount,
+    tabSwitches: examSession.tabSwitches,
+    pasteAttempts: examSession.pasteAttempts,
+    submittedAt: Date.now(),
+    disqualified: !!disqualified,
+    disqualifyReason: reason || null,
+  };
+  S.results.push(result);
+  saveResults(S.results);
+  downloadJson(result, `resultado_${slug(result.studentName)}_${result.submittedAt}.json`);
+  S.lastResult = result;
+  S.screen = 'student-result';
+  examSession = null;
+  render();
+}
+function downloadJson(obj, filename){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+render();
+</script>
+</body>
+</html>
